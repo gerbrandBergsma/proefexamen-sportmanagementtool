@@ -21,6 +21,7 @@ const navLinks = [
   { name: "Statistics", path: "/StatisticsPage" },
   { name: "Teams", path: "/TeamsPage" },
   { name: "Training", path: "/TrainingPage" },
+  { name: "Wedstrijden", path: "/Wedstrijden" },
 ];
 
 const router = useRouter();

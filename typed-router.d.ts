@@ -23,6 +23,7 @@ declare module 'vue-router/auto-routes' {
     '/StatisticsPage': RouteRecordInfo<'/StatisticsPage', '/StatisticsPage', Record<never, never>, Record<never, never>>,
     '/TeamsPage': RouteRecordInfo<'/TeamsPage', '/TeamsPage', Record<never, never>, Record<never, never>>,
     '/TrainingPage': RouteRecordInfo<'/TrainingPage', '/TrainingPage', Record<never, never>, Record<never, never>>,
+    '/Wedstrijden': RouteRecordInfo<'/Wedstrijden', '/Wedstrijden', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -54,6 +55,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/TrainingPage.vue': {
       routes: '/TrainingPage'
+      views: never
+    }
+    'src/pages/Wedstrijden.vue': {
+      routes: '/Wedstrijden'
       views: never
     }
   }

@@ -7,6 +7,8 @@
       <a href="StatisticsPage">Statistics</a>
       <a href="TeamsPage">Teams</a>
       <a href="TrainingPage">Training</a>
+      <a href="Wedstrijden">Wedstrijden</a>
+
     </nav>
   </header>
 </template>
