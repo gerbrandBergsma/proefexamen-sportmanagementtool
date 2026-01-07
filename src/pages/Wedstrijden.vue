@@ -21,7 +21,6 @@
             required
             class="mb-3"
           />
-
           <v-select
             v-model="newMatch.team_uit_id"
             :items="teams"
@@ -31,7 +30,6 @@
             required
             class="mb-3"
           />
-
           <v-text-field
             v-model="newMatch.datum"
             label="Datum"
@@ -39,48 +37,60 @@
             required
             class="mb-3"
           />
-
           <v-text-field
             v-model="newMatch.locatie"
             label="Locatie"
             required
             class="mb-3"
           />
-
-          <v-btn type="submit" color="primary"> Maak Wedstrijd </v-btn>
+          <v-text-field
+            v-model="newMatch.uitslag_thuis"
+            label="Score Thuis"
+            type="number"
+            min="0"
+            class="mb-3"
+          />
+          <v-text-field
+            v-model="newMatch.uitslag_uit"
+            label="Score Uit"
+            type="number"
+            min="0"
+            class="mb-3"
+          />
+          <v-btn type="submit" color="primary">Maak Wedstrijd</v-btn>
         </v-form>
 
         <!-- Wedstrijden lijst -->
-        <v-list two-line>
-          <v-list-item v-for="match in matches" :key="match.id">
-            <v-list-item-content>
-              <v-list-item-title>
-                <strong>{{ match.team_thuis?.naam }}</strong>
-                vs
-                <strong>{{ match.team_uit?.naam }}</strong>
-              </v-list-item-title>
-
-              <v-list-item-subtitle>
-                {{ match.datum }} — {{ match.locatie }}
-              </v-list-item-subtitle>
-            </v-list-item-content>
-
-            <v-list-item-action>
-              <v-btn small color="warning" @click="editMatch(match)">
-                Bewerk
-              </v-btn>
-              <v-btn small color="error" @click="deleteMatch(match.id)">
-                Verwijder
-              </v-btn>
-            </v-list-item-action>
+        <v-list>
+          <v-list-item
+            v-for="match in matches"
+            :key="match.id"
+            class="mb-2"
+            two-line
+          >
+            <div>
+              <strong>{{ match.team_thuis?.naam || "Onbekend" }}</strong>
+              vs
+              <strong>{{ match.team_uit?.naam || "Onbekend" }}</strong>
+            </div>
+            <div>
+              {{ match.datum }} — {{ match.locatie }} | Score:
+              {{ match.uitslag_thuis ?? "-" }} - {{ match.uitslag_uit ?? "-" }}
+            </div>
+            <div class="mt-1">
+              <v-btn small color="warning" @click="editMatch(match)"
+                >Bewerk</v-btn
+              >
+              <v-btn small color="error" @click="deleteMatch(match.id)"
+                >Verwijder</v-btn
+              >
+            </div>
           </v-list-item>
         </v-list>
-
-        <!-- Dialog: Bewerken -->
+        <!-- Dialog: Wedstrijd bewerken -->
         <v-dialog v-model="editDialog" max-width="600px">
           <v-card>
             <v-card-title>Bewerk Wedstrijd</v-card-title>
-
             <v-card-text>
               <v-select
                 v-model="selectedMatch.team_thuis_id"
@@ -90,7 +100,6 @@
                 label="Thuis team"
                 class="mb-3"
               />
-
               <v-select
                 v-model="selectedMatch.team_uit_id"
                 :items="teams"
@@ -99,21 +108,32 @@
                 label="Uit team"
                 class="mb-3"
               />
-
               <v-text-field
                 v-model="selectedMatch.datum"
                 label="Datum"
                 type="date"
                 class="mb-3"
               />
-
               <v-text-field
                 v-model="selectedMatch.locatie"
                 label="Locatie"
                 class="mb-3"
               />
+              <v-text-field
+                v-model="selectedMatch.uitslag_thuis"
+                label="Score Thuis"
+                type="number"
+                min="0"
+                class="mb-3"
+              />
+              <v-text-field
+                v-model="selectedMatch.uitslag_uit"
+                label="Score Uit"
+                type="number"
+                min="0"
+                class="mb-3"
+              />
             </v-card-text>
-
             <v-card-actions>
               <v-btn text @click="editDialog = false">Annuleer</v-btn>
               <v-btn color="primary" @click="updateMatch">Opslaan</v-btn>
@@ -133,24 +153,22 @@ export default {
     return {
       teams: [],
       matches: [],
-
       newMatch: {
         team_thuis_id: null,
         team_uit_id: null,
         datum: "",
         locatie: "",
+        uitslag_thuis: null,
+        uitslag_uit: null,
       },
-
       editDialog: false,
       selectedMatch: {},
     };
   },
-
   mounted() {
     this.fetchTeams();
     this.fetchMatches();
   },
-
   methods: {
     async fetchTeams() {
       const res = await fetch("http://127.0.0.1:8000/api/teams");
@@ -178,23 +196,29 @@ export default {
       });
 
       if (res.ok) {
-        const match = await res.json();
-        this.matches.push(match);
+        const matchWithTeams = await res.json();
+
+        // Debug: bekijk wat er binnenkomt
+        console.log("Nieuwe wedstrijd:", matchWithTeams);
+        console.log("teamThuis:", matchWithTeams.team_thuis);
+        console.log("teamUit:", matchWithTeams.team_uit);
+
+        this.matches.push(matchWithTeams);
+
+        // Reset form
         this.newMatch = {
           team_thuis_id: null,
           team_uit_id: null,
           datum: "",
           locatie: "",
+          uitslag_thuis: null,
+          uitslag_uit: null,
         };
       }
     },
 
     editMatch(match) {
-      this.selectedMatch = {
-        ...match,
-        team_thuis_id: match.team_thuis_id,
-        team_uit_id: match.team_uit_id,
-      };
+      this.selectedMatch = { ...match };
       this.editDialog = true;
     },
 
@@ -202,7 +226,6 @@ export default {
       await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
         credentials: "include",
       });
-
       const res = await fetch(
         `http://127.0.0.1:8000/api/wedstrijden/${this.selectedMatch.id}`,
         {
@@ -215,12 +238,17 @@ export default {
           body: JSON.stringify(this.selectedMatch),
         }
       );
-
       if (res.ok) {
-        const index = this.matches.findIndex(
-          (m) => m.id === this.selectedMatch.id
+        const updatedMatch = await res.json();
+
+        // Match opnieuw ophalen met teams
+        const res2 = await fetch(
+          `http://127.0.0.1:8000/api/wedstrijden/${updatedMatch.id}`
         );
-        this.matches[index] = { ...this.selectedMatch };
+        const matchWithTeams = await res2.json();
+
+        const index = this.matches.findIndex((m) => m.id === matchWithTeams.id);
+        this.matches[index] = matchWithTeams;
         this.editDialog = false;
       }
     },
@@ -229,16 +257,12 @@ export default {
       await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
         credentials: "include",
       });
-
       const res = await fetch(`http://127.0.0.1:8000/api/wedstrijden/${id}`, {
         method: "DELETE",
-        credentials: "include",
         headers: { Accept: "application/json" },
+        credentials: "include",
       });
-
-      if (res.ok) {
-        this.matches = this.matches.filter((m) => m.id !== id);
-      }
+      if (res.ok) this.matches = this.matches.filter((m) => m.id !== id);
     },
   },
 };
