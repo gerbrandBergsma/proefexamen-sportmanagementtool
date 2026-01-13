@@ -197,12 +197,6 @@ export default {
 
       if (res.ok) {
         const matchWithTeams = await res.json();
-
-        // Debug: bekijk wat er binnenkomt
-        console.log("Nieuwe wedstrijd:", matchWithTeams);
-        console.log("teamThuis:", matchWithTeams.team_thuis);
-        console.log("teamUit:", matchWithTeams.team_uit);
-
         this.matches.push(matchWithTeams);
 
         // Reset form

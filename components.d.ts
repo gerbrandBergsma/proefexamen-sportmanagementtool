@@ -15,5 +15,8 @@ declare module 'vue' {
     AppHeader: typeof import('./src/components/AppHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TeamChart: typeof import('./src/components/TeamChart.vue')['default']
+    TeamLineChart: typeof import('./src/components/TeamLineChart.vue')['default']
+    TeamsLineChart: typeof import('./src/components/TeamsLineChart.vue')['default']
   }
 }
