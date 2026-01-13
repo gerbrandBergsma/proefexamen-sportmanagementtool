@@ -35,15 +35,7 @@ export default defineConfig({
       },
     }),
   ],
-  optimizeDeps: {
-    exclude: [
-      "vuetify",
-      "vue-router",
-      "unplugin-vue-router/runtime",
-      "unplugin-vue-router/data-loaders",
-      "unplugin-vue-router/data-loaders/basic",
-    ],
-  },
+
   define: { "process.env": {} },
   resolve: {
     alias: {
@@ -53,12 +45,37 @@ export default defineConfig({
   },
   server: {
     port: 3199,
+    open: true,
+    hmr: {
+      overlay: true,
+    },
+    watch: {
+      usePolling: true,
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined, // Disable code splitting that can cause cache issues
+      },
+    },
   },
   css: {
+    devSourcemap: true,
     preprocessorOptions: {
       sass: {
         quietDeps: true,
       },
     },
+  },
+  optimizeDeps: {
+    include: ["vuetify"],
+    exclude: [
+      "vue-router",
+      "unplugin-vue-router/runtime",
+      "unplugin-vue-router/data-loaders",
+      "unplugin-vue-router/data-loaders/basic",
+    ],
+    force: true, // Force re-optimization on every start
   },
 });
