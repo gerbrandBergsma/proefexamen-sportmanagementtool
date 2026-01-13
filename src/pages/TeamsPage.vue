@@ -136,148 +136,102 @@
 </template>
 
 <script>
+import { TeamsService } from "@/services/teams.service";
+import { PlayersService } from "@/services/players.service";
+
 export default {
   data() {
     return {
       teams: [],
       players: [],
 
-      // Nieuw team
-      newTeam: { naam: "", sportsoort: "", categorie: "" },
+      newTeam: {
+        naam: "",
+        sportsoort: "",
+        categorie: "",
+      },
 
-      // Bewerken
       editDialog: false,
       selectedTeam: {},
 
-      // Spelers
       playersDialog: false,
       teamPlayers: [],
-      newPlayer: { naam: "", leeftijd: null },
+      newPlayer: {
+        naam: "",
+        leeftijd: null,
+      },
     };
   },
-  mounted() {
-    this.fetchTeams();
-    this.fetchPlayers();
+
+  async mounted() {
+    await this.loadData();
   },
+
   methods: {
-    // Teams ophalen
-    async fetchTeams() {
-      const res = await fetch("http://127.0.0.1:8000/api/teams", {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      this.teams = await res.json();
+    async loadData() {
+      const [teamsRes, playersRes] = await Promise.all([
+        TeamsService.getAll(),
+        PlayersService.getAll(),
+      ]);
+
+      this.teams = teamsRes.data;
+      this.players = playersRes.data;
     },
 
-    // Spelers ophalen
-    async fetchPlayers() {
-      const res = await fetch("http://127.0.0.1:8000/api/players", {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      this.players = await res.json();
-    },
-
-    // Team CRUD
+    // ===== TEAMS =====
     async createTeam() {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-      const res = await fetch("http://127.0.0.1:8000/api/teams", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(this.newTeam),
-      });
-      if (res.ok) {
-        const team = await res.json();
-        this.teams.push(team);
-        this.newTeam = { naam: "", sportsoort: "", categorie: "" };
-      }
+      const { data } = await TeamsService.create(this.newTeam);
+      this.teams.push(data);
+
+      this.newTeam = { naam: "", sportsoort: "", categorie: "" };
     },
+
     editTeam(team) {
       this.selectedTeam = { ...team };
       this.editDialog = true;
     },
+
     async updateTeam() {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/teams/${this.selectedTeam.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(this.selectedTeam),
-        }
+      const { data } = await TeamsService.update(
+        this.selectedTeam.id,
+        this.selectedTeam
       );
-      if (res.ok) {
-        const index = this.teams.findIndex(
-          (t) => t.id === this.selectedTeam.id
-        );
-        this.teams[index] = { ...this.selectedTeam };
-        this.editDialog = false;
-      }
-    },
-    async deleteTeam(id) {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-      const res = await fetch(`http://127.0.0.1:8000/api/teams/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      if (res.ok) this.teams = this.teams.filter((t) => t.id !== id);
+
+      const index = this.teams.findIndex((t) => t.id === data.id);
+      this.teams[index] = data;
+      this.editDialog = false;
     },
 
-    // Spelers per team
+    async deleteTeam(id) {
+      await TeamsService.delete(id);
+      this.teams = this.teams.filter((t) => t.id !== id);
+    },
+
+    // ===== SPELERS PER TEAM =====
     openPlayers(team) {
       this.selectedTeam = { ...team };
       this.teamPlayers = this.players.filter((p) => p.team_id === team.id);
       this.playersDialog = true;
     },
+
     async addPlayer() {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-      const payload = { ...this.newPlayer, team_id: this.selectedTeam.id };
-      const res = await fetch("http://127.0.0.1:8000/api/players", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        const player = await res.json();
-        this.players.push(player);
-        this.teamPlayers.push(player);
-        this.newPlayer = { naam: "", leeftijd: null };
-      }
+      const payload = {
+        ...this.newPlayer,
+        team_id: this.selectedTeam.id,
+      };
+
+      const { data } = await PlayersService.create(payload);
+      this.players.push(data);
+      this.teamPlayers.push(data);
+
+      this.newPlayer = { naam: "", leeftijd: null };
     },
+
     async deletePlayer(playerId) {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-      const res = await fetch(`http://127.0.0.1:8000/api/players/${playerId}`, {
-        method: "DELETE",
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      if (res.ok) {
-        this.players = this.players.filter((p) => p.id !== playerId);
-        this.teamPlayers = this.teamPlayers.filter((p) => p.id !== playerId);
-      }
+      await PlayersService.delete(playerId);
+
+      this.players = this.players.filter((p) => p.id !== playerId);
+      this.teamPlayers = this.teamPlayers.filter((p) => p.id !== playerId);
     },
   },
 };

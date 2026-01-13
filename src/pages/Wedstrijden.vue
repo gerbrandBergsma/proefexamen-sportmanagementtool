@@ -148,6 +148,9 @@
 </template>
 
 <script>
+import { MatchesService } from "@/services/matches.service";
+import { TeamsService } from "@/services/teams.service";
+
 export default {
   data() {
     return {
@@ -165,50 +168,34 @@ export default {
       selectedMatch: {},
     };
   },
-  mounted() {
-    this.fetchTeams();
-    this.fetchMatches();
-  },
-  methods: {
-    async fetchTeams() {
-      const res = await fetch("http://127.0.0.1:8000/api/teams");
-      this.teams = await res.json();
-    },
 
-    async fetchMatches() {
-      const res = await fetch("http://127.0.0.1:8000/api/wedstrijden");
-      this.matches = await res.json();
+  async mounted() {
+    await this.loadData();
+  },
+
+  methods: {
+    async loadData() {
+      const [teamsRes, matchesRes] = await Promise.all([
+        TeamsService.getAll(),
+        MatchesService.getAll(),
+      ]);
+
+      this.teams = teamsRes.data;
+      this.matches = matchesRes.data;
     },
 
     async createMatch() {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
+      const { data } = await MatchesService.create(this.newMatch);
+      this.matches.push(data);
 
-      const res = await fetch("http://127.0.0.1:8000/api/wedstrijden", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(this.newMatch),
-      });
-
-      if (res.ok) {
-        const matchWithTeams = await res.json();
-        this.matches.push(matchWithTeams);
-
-        // Reset form
-        this.newMatch = {
-          team_thuis_id: null,
-          team_uit_id: null,
-          datum: "",
-          locatie: "",
-          uitslag_thuis: null,
-          uitslag_uit: null,
-        };
-      }
+      this.newMatch = {
+        team_thuis_id: null,
+        team_uit_id: null,
+        datum: "",
+        locatie: "",
+        uitslag_thuis: null,
+        uitslag_uit: null,
+      };
     },
 
     editMatch(match) {
@@ -217,46 +204,19 @@ export default {
     },
 
     async updateMatch() {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/wedstrijden/${this.selectedMatch.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(this.selectedMatch),
-        }
+      const { data } = await MatchesService.update(
+        this.selectedMatch.id,
+        this.selectedMatch
       );
-      if (res.ok) {
-        const updatedMatch = await res.json();
 
-        // Match opnieuw ophalen met teams
-        const res2 = await fetch(
-          `http://127.0.0.1:8000/api/wedstrijden/${updatedMatch.id}`
-        );
-        const matchWithTeams = await res2.json();
-
-        const index = this.matches.findIndex((m) => m.id === matchWithTeams.id);
-        this.matches[index] = matchWithTeams;
-        this.editDialog = false;
-      }
+      const index = this.matches.findIndex((m) => m.id === data.id);
+      this.matches[index] = data;
+      this.editDialog = false;
     },
 
     async deleteMatch(id) {
-      await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-      const res = await fetch(`http://127.0.0.1:8000/api/wedstrijden/${id}`, {
-        method: "DELETE",
-        headers: { Accept: "application/json" },
-        credentials: "include",
-      });
-      if (res.ok) this.matches = this.matches.filter((m) => m.id !== id);
+      await MatchesService.delete(id);
+      this.matches = this.matches.filter((m) => m.id !== id);
     },
   },
 };

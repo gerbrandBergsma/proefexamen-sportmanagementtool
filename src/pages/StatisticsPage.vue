@@ -59,43 +59,8 @@
                   <th>Naam</th>
                   <th>Blessure</th>
                   <th>Doelpunten</th>
-                  <th>
-                    Aanwezigheid
-                    <v-tooltip location="top">
-                      <template #activator="{ props }">
-                        <v-icon
-                          v-bind="props"
-                          size="18"
-                          color="primary"
-                          class="ml-1"
-                          >mdi-information-outline</v-icon
-                        >
-                      </template>
-                      <span>
-                        Present = 1 punt<br />
-                        Late = 0,5 punt<br />
-                        Absent / Unknown = 0 punten
-                      </span>
-                    </v-tooltip>
-                  </th>
-                  <th>
-                    Gemiddelde aanwezigheid
-                    <v-tooltip location="top">
-                      <template #activator="{ props }">
-                        <v-icon
-                          v-bind="props"
-                          size="18"
-                          color="primary"
-                          class="ml-1"
-                          >mdi-information-outline</v-icon
-                        >
-                      </template>
-                      <span>
-                        Totaal aanwezigheidspunten gedeeld door het aantal
-                        trainingen
-                      </span>
-                    </v-tooltip>
-                  </th>
+                  <th>Aanwezigheid</th>
+                  <th>Gem. aanwezigheid</th>
                 </tr>
               </thead>
               <tbody>
@@ -118,20 +83,22 @@
     <AppFooter />
   </v-app>
 </template>
-
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { StatistiekenService } from "@/services/statistieken.service";
 import TeamsLineChart from "@/components/TeamsLineChart.vue";
 
 const teams = ref([]);
 const players = ref([]);
 
 onMounted(async () => {
-  const { data } = await axios.get("http://127.0.0.1:8000/api/statistieken");
-
-  teams.value = data.teams;
-  players.value = data.players;
+  try {
+    const { data } = await StatistiekenService.get();
+    teams.value = data.teams;
+    players.value = data.players;
+  } catch (err) {
+    console.error("Error fetching statistieken:", err);
+  }
 });
 </script>
 
