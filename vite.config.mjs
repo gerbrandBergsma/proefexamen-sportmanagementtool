@@ -35,11 +35,9 @@ export default defineConfig({
       },
     }),
   ],
-
-  define: { "process.env": {} },
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("src", import.meta.url)),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
     extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
   },
@@ -48,16 +46,6 @@ export default defineConfig({
     open: true,
     hmr: {
       overlay: true,
-    },
-    watch: {
-      usePolling: true,
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: undefined, // Disable code splitting that can cause cache issues
-      },
     },
   },
   css: {
@@ -76,6 +64,5 @@ export default defineConfig({
       "unplugin-vue-router/data-loaders",
       "unplugin-vue-router/data-loaders/basic",
     ],
-    force: true, // Force re-optimization on every start
   },
 });

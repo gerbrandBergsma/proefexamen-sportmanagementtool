@@ -6,11 +6,22 @@
       <v-container>
         <h2 class="mb-4">Training Dashboard</h2>
 
+        <!-- Loading state -->
+        <v-progress-linear
+          v-if="store.loading"
+          indeterminate
+          color="primary"
+          class="mb-4"
+        />
+
         <!-- Trainings aanmaken -->
         <v-card class="mb-5" outlined>
           <v-card-title>Nieuwe Training</v-card-title>
           <v-card-text>
-            <v-form @submit.prevent="createTraining" style="max-width: 500px">
+            <v-form
+              @submit.prevent="handleCreateTraining"
+              style="max-width: 500px"
+            >
               <v-text-field
                 v-model="newTraining.title"
                 label="Titel"
@@ -19,7 +30,7 @@
               />
               <v-select
                 v-model="newTraining.team_id"
-                :items="teams"
+                :items="store.teams"
                 item-title="naam"
                 item-value="id"
                 label="Selecteer team"
@@ -65,25 +76,32 @@
 
         <!-- Trainingslijst -->
         <v-card
-          v-for="training in trainings"
+          v-for="training in store.trainings"
           :key="training.id"
           class="mb-4"
           outlined
         >
           <v-card-title>
-            {{ training.title }} - {{ getTeamName(training.team_id) }} ({{
+            {{ training.title }} - {{ store.getTeamName(training.team_id) }} ({{
               training.training_date
             }}
             {{ training.start_time }}-{{ training.end_time }})
             <v-spacer></v-spacer>
-            <v-btn color="error" small @click="deleteTraining(training.id)"
+            <v-btn
+              color="error"
+              small
+              @click="handleDeleteTraining(training.id)"
               >Verwijder</v-btn
             >
           </v-card-title>
 
           <!-- Aanwezigheid spelers -->
           <v-card-text>
-            <v-form @submit.prevent="saveAttendance(training.id)">
+            <v-form
+              @submit.prevent="
+                handleSaveAttendance(training.id, training.attendance)
+              "
+            >
               <div
                 v-for="att in training.attendance"
                 :key="att.player_id"
@@ -99,9 +117,17 @@
                   class="ml-2"
                 />
               </div>
-              <v-btn type="submit" color="primary" small
-                >Opslaan Aanwezigheid</v-btn
+              <v-btn
+                v-if="training.attendance.length > 0"
+                type="submit"
+                color="primary"
+                small
               >
+                Opslaan Aanwezigheid
+              </v-btn>
+              <p v-else class="text-grey">
+                Geen spelers beschikbaar voor dit team
+              </p>
             </v-form>
           </v-card-text>
         </v-card>
@@ -111,90 +137,58 @@
     <AppFooter />
   </v-app>
 </template>
-<script>
-import { TrainingsService } from "@/services/trainings.service";
-import { TeamsService } from "@/services/teams.service";
 
-export default {
-  data() {
-    return {
-      trainings: [],
-      teams: [],
+<script setup>
+import { ref, onMounted } from "vue";
+import { useTrainingStore } from "@/stores/training";
 
-      newTraining: {
-        title: "",
-        team_id: null,
-        training_date: "",
-        start_time: "",
-        end_time: "",
-        location: "",
-        notes: "",
-      },
-    };
-  },
+const store = useTrainingStore();
 
-  async mounted() {
-    await this.loadData();
-  },
+const newTraining = ref({
+  title: "",
+  team_id: null,
+  training_date: "",
+  start_time: "",
+  end_time: "",
+  location: "",
+  notes: "",
+});
 
-  methods: {
-    async loadData() {
-      const [trainingsRes, teamsRes] = await Promise.all([
-        TrainingsService.getAll(),
-        TeamsService.getAll(),
-      ]);
+// Load data alleen bij eerste mount, niet bij HMR
+onMounted(() => {
+  if (!import.meta.hot) {
+    store.loadData();
+  } else {
+    // Bij HMR: alleen laden als store leeg is
+    if (store.trainings.length === 0) {
+      store.loadData();
+    }
+  }
+});
 
-      this.teams = teamsRes.data;
+async function handleCreateTraining() {
+  await store.createTraining(newTraining.value);
 
-      this.trainings = trainingsRes.data.map((t) => ({
-        ...t,
-        attendance: t.players.map((p) => ({
-          player_id: p.id,
-          player_name: p.naam,
-          status: p.pivot?.status ?? "unknown",
-        })),
-      }));
-    },
+  // Reset form
+  newTraining.value = {
+    title: "",
+    team_id: null,
+    training_date: "",
+    start_time: "",
+    end_time: "",
+    location: "",
+    notes: "",
+  };
+}
 
-    // ===== TRAININGS =====
-    async createTraining() {
-      const { data } = await TrainingsService.create(this.newTraining);
+async function handleDeleteTraining(id) {
+  if (confirm("Weet je zeker dat je deze training wilt verwijderen?")) {
+    await store.deleteTraining(id);
+  }
+}
 
-      data.attendance = [];
-      this.trainings.push(data);
-
-      this.newTraining = {
-        title: "",
-        team_id: null,
-        training_date: "",
-        start_time: "",
-        end_time: "",
-        location: "",
-        notes: "",
-      };
-    },
-
-    async deleteTraining(id) {
-      await TrainingsService.delete(id);
-      this.trainings = this.trainings.filter((t) => t.id !== id);
-    },
-
-    async saveAttendance(trainingId) {
-      const training = this.trainings.find((t) => t.id === trainingId);
-      if (!training) return;
-
-      await TrainingsService.saveAttendance(trainingId, {
-        attendance: training.attendance,
-      });
-
-      alert("Aanwezigheid opgeslagen!");
-    },
-
-    // ===== HELPERS =====
-    getTeamName(teamId) {
-      const team = this.teams.find((t) => t.id === teamId);
-      return team ? team.naam : "Geen team";
-    },
-  },
-};
+async function handleSaveAttendance(trainingId, attendance) {
+  await store.saveAttendance(trainingId, attendance);
+  alert("Aanwezigheid opgeslagen!");
+}
 </script>
