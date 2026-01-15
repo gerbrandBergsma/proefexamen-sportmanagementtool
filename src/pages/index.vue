@@ -4,10 +4,10 @@
 
     <v-main>
       <v-container>
-        <h1>Welkom bij Sportmanagementtool</h1>
+        <h1>Welkom bij SportConnect</h1>
 
         <p>
-          Sportmanagementtool helpt sportclubs te digitaliseren en hun teams
+          SportConnect helpt sportclubs te digitaliseren en hun teams
           efficiënter te beheren. Met onze tool kun je eenvoudig teams en
           spelers beheren, trainingen en wedstrijden plannen, en de prestaties
           van je club in één overzicht volgen. Of je nu meerdere sportsoorten
@@ -19,7 +19,7 @@
           Ontworpen voor gebruiksvriendelijkheid en flexibiliteit, maakt onze
           tool het leven van clubbestuurders, coaches en spelers gemakkelijker.
           Van het plannen van een training tot het analyseren van
-          teamstatistieken: Sportmanagementtool brengt alles samen op één
+          teamstatistieken: SportConnect brengt alles samen op één
           platform.
         </p>
 

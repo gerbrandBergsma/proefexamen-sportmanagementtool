@@ -9,6 +9,10 @@ export const TrainingsService = {
     return api.post("/trainings", data);
   },
 
+  update(id, data) {
+    return api.put(`/trainings/${id}`, data);
+  },
+
   delete(id) {
     return api.delete(`/trainings/${id}`);
   },
