@@ -53,11 +53,19 @@ function navigate(path: string) {
 
 <style scoped>
 .app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
   display: flex;
   align-items: center;
   padding: 1rem 1.5rem;
+
   background: #111827;
   color: white;
+
+  z-index: 2000;
 }
 
 .logo {

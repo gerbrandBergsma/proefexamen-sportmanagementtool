@@ -1,33 +1,35 @@
 <template>
-  <v-footer app height="60" class="footer d-flex align-center">
+  <v-footer app height="60" class="app-footer">
     <v-container>
-      <v-row class="align-center justify-center" no-gutters>
-        <!-- Desktop links: elk 1/6 breed -->
-        <v-col
-          v-for="link in navLinks"
-          :key="link.name"
-          cols="2"
-          class="d-none d-sm-flex justify-center"
-        >
-          <v-btn
-            variant="text"
-            class="footer-link w-100"
-            @click="router.push(link.path)"
-          >
-            {{ link.name }}
-          </v-btn>
+      <v-row class="align-center justify-between" no-gutters>
+        <!-- Logo -->
+        <v-col cols="auto">
+          <h1 class="footer-logo">SportConnect</h1>
+        </v-col>
+
+        <!-- Desktop nav: links over volledige breedte, zoals header -->
+        <v-col class="d-none d-lg-flex">
+          <div class="footer-nav">
+            <a
+              v-for="link in navLinks"
+              :key="link.name"
+              @click="router.push(link.path)"
+            >
+              {{ link.name }}
+            </a>
+          </div>
         </v-col>
 
         <!-- Mobile hamburger -->
-        <v-col cols="auto" class="d-flex d-sm-none justify-center">
+        <v-col cols="auto" class="d-flex d-lg-none justify-end">
           <v-menu location="top end">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props">
+              <v-btn icon class="footer-hamburger" v-bind="props">
                 <v-icon>mdi-menu</v-icon>
               </v-btn>
             </template>
 
-            <v-list>
+            <v-list class="footer-dropdown">
               <v-list-item
                 v-for="link in navLinks"
                 :key="link.name"
@@ -66,23 +68,87 @@ const navLinks: NavLink[] = [
 </script>
 
 <style scoped>
-.footer {
+.app-footer {
+  background-color: #111827 !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+}
+
+/* Logo */
+.footer-logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Desktop nav: links over volledige breedte, elk neemt evenveel ruimte */
+.footer-nav {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.footer-nav a {
+  flex: 1;
+  text-align: center;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-nav a:hover {
+  color: white;
+}
+
+/* Hamburger button mobiel */
+.footer-hamburger {
+  background: transparent !important;
+  border: none !important;
+  padding: 0;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-hamburger .v-icon {
+  font-size: 1.5rem;
+  color: white;
+}
+
+/* Dropdown menu */
+.footer-dropdown {
   background-color: #111827 !important;
   color: white !important;
 }
 
-.footer-link {
-  color: #e5e7eb !important;
-  text-transform: none;
-  font-weight: 500;
-  font-size: 16px;
-}
-
-.footer-link:hover {
+.footer-dropdown .v-list-item {
   color: white !important;
 }
 
-.v-btn {
-  box-shadow: none !important;
+.footer-dropdown .v-list-item:hover {
+  background-color: #1f2937 !important;
+}
+
+/* Responsive helpers */
+.d-none {
+  display: none !important;
+}
+.d-lg-flex {
+  display: flex !important;
+}
+.d-lg-none {
+  display: none !important;
+}
+
+@media (max-width: 680px) {
+  .d-lg-flex {
+    display: none !important;
+  }
+  .d-lg-none {
+    display: flex !important;
+  }
 }
 </style>
